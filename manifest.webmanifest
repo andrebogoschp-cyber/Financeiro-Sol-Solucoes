@@ -1,0 +1,15 @@
+{
+  "name": "SOL Soluções - Financeiro",
+  "short_name": "SOL Financeiro",
+  "description": "Controle de entradas e saidas por condominio - SOL Solucoes",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a141d",
+  "theme_color": "#0f6ba8",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
