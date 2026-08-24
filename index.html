@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SOL Financeiro" />
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" href="icon-192.png" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 </head>
 
@@ -329,7 +329,7 @@
   <div id="shell">
     <aside id="sidebar">
       <div class="brand-row">
-        <img src="icons/icon-192.png" alt="SOL" />
+        <img src="icon-192.png" alt="SOL" />
         <div>
           <div class="brand-name">SOL Soluções</div>
           <div class="brand-sub">Financeiro</div>
@@ -343,7 +343,7 @@
 
     <div>
       <div id="mobile-bar">
-        <img src="icons/icon-192.png" alt="SOL" />
+        <img src="icon-192.png" alt="SOL" />
         <div class="brand-name">SOL Financeiro</div>
       </div>
       <main id="view-root"></main>
@@ -844,13 +844,6 @@
         renderCondoDetail(root, condoDetailId);
         return;
       }
-      var list = state.condominios.filter(function(c){
-        var matchesArchive = filters.showArchived ? true : c.ativo;
-        var matchesSearch = !filters.condoSearch || c.nome.toLowerCase().indexOf(filters.condoSearch.toLowerCase())>=0;
-        return matchesArchive && matchesSearch;
-      }).sort(function(a,b){ return (b.ativo-a.ativo) || a.nome.localeCompare(b.nome); });
-
-      var thisMonth = currentMonthKey();
 
       root.innerHTML =
         '<div class="view-header">' +
@@ -861,23 +854,40 @@
           '<input class="text-input" id="condo-search" placeholder="Buscar condomínio…" value="'+esc(filters.condoSearch)+'" style="min-width:220px;" />' +
           '<label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-muted);font-weight:600;"><input type="checkbox" id="show-archived" '+(filters.showArchived?'checked':'')+' /> Mostrar arquivados</label>' +
         '</div>' +
-        (list.length ?
-          '<div class="condo-grid">' + list.map(function(c){
-            var t = totalsForMonth(thisMonth, c.id);
-            return '<button class="condo-card" data-open="'+c.id+'">' +
-              '<div class="cname">'+esc(c.nome)+ (!c.ativo?'<span class="badge-inactive">Arquivado</span>':'') +'</div>' +
-              '<div class="cstat"><span>Recebido (mês)</span><span class="v good num">'+fmtMoney(t.totalIn)+'</span></div>' +
-              '<div class="cstat"><span>Gasto (mês)</span><span class="v bad num">'+fmtMoney(t.totalOut)+'</span></div>' +
-              '<div class="csaldo num">Saldo do mês: <strong style="color:var(--'+(t.saldo>=0?'good':'bad')+')">'+fmtMoney(t.saldo)+'</strong></div>' +
-            '</button>';
-          }).join('') + '</div>'
-          : '<div class="card empty-state pad"><div class="ic">🏢</div><p>Nenhum condomínio encontrado. Adicione o primeiro para começar a lançar entradas e saídas.</p></div>'
-        );
+        '<div id="condo-grid-wrap"></div>';
 
       document.getElementById('add-condo').onclick = function(){ openAddCondoForm(); };
-      document.getElementById('condo-search').oninput = function(e){ filters.condoSearch = e.target.value; renderAll(); };
-      document.getElementById('show-archived').onchange = function(e){ filters.showArchived = e.target.checked; renderAll(); };
-      root.querySelectorAll('[data-open]').forEach(function(btn){
+      document.getElementById('condo-search').oninput = function(e){ filters.condoSearch = e.target.value; renderCondoGrid(); };
+      document.getElementById('show-archived').onchange = function(e){ filters.showArchived = e.target.checked; renderCondoGrid(); };
+
+      renderCondoGrid();
+    }
+
+    function renderCondoGrid(){
+      var wrap = document.getElementById('condo-grid-wrap');
+      if(!wrap) return;
+      var list = state.condominios.filter(function(c){
+        var matchesArchive = filters.showArchived ? true : c.ativo;
+        var matchesSearch = !filters.condoSearch || c.nome.toLowerCase().indexOf(filters.condoSearch.toLowerCase())>=0;
+        return matchesArchive && matchesSearch;
+      }).sort(function(a,b){ return (b.ativo-a.ativo) || a.nome.localeCompare(b.nome); });
+
+      var thisMonth = currentMonthKey();
+
+      wrap.innerHTML = (list.length ?
+        '<div class="condo-grid">' + list.map(function(c){
+          var t = totalsForMonth(thisMonth, c.id);
+          return '<button class="condo-card" data-open="'+c.id+'">' +
+            '<div class="cname">'+esc(c.nome)+ (!c.ativo?'<span class="badge-inactive">Arquivado</span>':'') +'</div>' +
+            '<div class="cstat"><span>Recebido (mês)</span><span class="v good num">'+fmtMoney(t.totalIn)+'</span></div>' +
+            '<div class="cstat"><span>Gasto (mês)</span><span class="v bad num">'+fmtMoney(t.totalOut)+'</span></div>' +
+            '<div class="csaldo num">Saldo do mês: <strong style="color:var(--'+(t.saldo>=0?'good':'bad')+')">'+fmtMoney(t.saldo)+'</strong></div>' +
+          '</button>';
+        }).join('') + '</div>'
+        : '<div class="card empty-state pad"><div class="ic">🏢</div><p>Nenhum condomínio encontrado. Adicione o primeiro para começar a lançar entradas e saídas.</p></div>'
+      );
+
+      wrap.querySelectorAll('[data-open]').forEach(function(btn){
         btn.onclick = function(){ condoDetailId = btn.dataset.open; filters.detailMonth = currentMonthKey(); renderAll(); };
       });
     }
